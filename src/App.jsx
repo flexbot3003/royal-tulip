@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ratingMessages, storyConfig } from "./storyConfig";
+import { ratingMessages, storyConfig as defaultStoryConfig } from "./storyConfig";
 
-const STORAGE_KEY = "royal-tulip-progress-v1";
-const initialProgress = { screen: "prologue", chapter: 0, solved: [], endingStep: "offer", rating: 0 };
+const STORAGE_KEY = "royal-tulip-progress-v2";
+const CONFIG_KEY = "royal-tulip-admin-config-v1";
+const initialProgress = { screen: "identity", chapter: 0, solved: [], endingStep: "offer", rating: 0 };
 
 export const normalizeAnswer = (value) => value.toLowerCase().replace(/[’']/g, "").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
 
@@ -11,6 +12,23 @@ function loadProgress() {
     return { ...initialProgress, ...JSON.parse(localStorage.getItem(STORAGE_KEY)) };
   } catch {
     return initialProgress;
+  }
+}
+
+function loadStoryConfig() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CONFIG_KEY));
+    if (!saved) return defaultStoryConfig;
+    return {
+      ...defaultStoryConfig,
+      ...saved,
+      chapters: defaultStoryConfig.chapters.map((chapter, index) => ({
+        ...chapter,
+        ...(saved.chapters?.[index] || {}),
+      })),
+    };
+  } catch {
+    return defaultStoryConfig;
   }
 }
 
@@ -23,12 +41,12 @@ function Seal({ mark, label, unlocked }) {
   );
 }
 
-function ProgressRail({ solved }) {
+function ProgressRail({ solved, config }) {
   return (
     <aside className="progress-rail" aria-label="Collected seals">
       <p className="eyebrow">Imperial evidence</p>
       <div className="seal-list">
-        {storyConfig.chapters.map((chapter, index) => (
+        {config.chapters.map((chapter, index) => (
           <Seal key={chapter.kicker} mark={chapter.sealMark} label={chapter.seal} unlocked={solved.includes(index)} />
         ))}
       </div>
@@ -36,33 +54,72 @@ function ProgressRail({ solved }) {
   );
 }
 
-function Prologue({ onBegin }) {
+function IdentityGate({ config, onAdmit }) {
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
+
+  const reject = [
+    "That name appears nowhere in the Imperial Records. Suspicious. Try again.",
+    "Rejected. The decree requested Thabi, not an ambitious palace impersonator.",
+    "The Chief Eunuch checked twice. You are apparently not the heroine.",
+    "A respectable name, perhaps—but it has not been arranged into this marriage.",
+    "Identity denied. Please return Thabi to the screen immediately.",
+  ];
+
+  const submit = (event) => {
+    event.preventDefault();
+    if (normalizeAnswer(name) !== normalizeAnswer(config.heroineName)) {
+      setError(reject[Math.floor(Math.random() * reject.length)]);
+      return;
+    }
+    setError("");
+    onAdmit();
+  };
+
   return (
-    <main className="story-shell prologue-shell">
-      <section className="scroll-panel hero-panel">
-        <div className="crest" aria-hidden="true"><span>缘</span></div>
-        <p className="eyebrow">An imperial romantic investigation</p>
-        <h1>A Most Inconvenient<br /><em>Betrothal</em></h1>
-        <div className="ornament" aria-hidden="true"><span>◆</span></div>
-        <p className="lead">Lady {storyConfig.heroineName} has been promised to an unnamed nobleman. The decree is valid. The arrangement is suspicious. The clerk assigned to assist her is even more suspicious.</p>
-        <div className="decree">
-          <p className="decree-title">Four questions remain sealed</p>
-          <ol>
-            <li><span>01</span> Who arranged the marriage?</li>
-            <li><span>02</span> Why was she selected?</li>
-            <li><span>03</span> Who is the mysterious nobleman?</li>
-            <li><span>04</span> Why does the unimportant clerk know too much?</li>
-          </ol>
-        </div>
-        <p className="fine-print">Her final decision remains her own. The Imperial Court regrets that it cannot say the same for the plot.</p>
-        <button className="primary-button" onClick={onBegin}>Open the forbidden manual</button>
+    <main className="story-shell identity-shell">
+      <section className="scroll-panel identity-panel">
+        <div className="crest" aria-hidden="true"><span>名</span></div>
+        <p className="eyebrow">Restricted imperial record</p>
+        <h1>Identify<br /><em>yourself.</em></h1>
+        <p className="lead">Only the woman named in the decree may open this record. Impersonation may result in paperwork, exile or mild embarrassment.</p>
+        <form className="answer-form identity-form" onSubmit={submit}>
+          <label htmlFor="identity-name">Enter your name exactly as the court knows it.</label>
+          <div className="answer-row">
+            <input id="identity-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Your name" autoComplete="name" autoFocus />
+            <button className="seal-button" type="submit">Confirm identity</button>
+          </div>
+          {error && <p className="error-message centered rejection" role="alert">{error}</p>}
+        </form>
+        <p className="fine-print">By submitting a name, the claimant agrees that the palace may become unnecessarily dramatic.</p>
       </section>
     </main>
   );
 }
 
-function Chapter({ chapterIndex, solved, onSolve, onNext }) {
-  const chapter = storyConfig.chapters[chapterIndex];
+function Prologue({ onBegin, config }) {
+  return (
+    <main className="story-shell prologue-shell">
+      <section className="scroll-panel hero-panel">
+        <div className="crest" aria-hidden="true"><span>缘</span></div>
+        <p className="eyebrow">Identity confirmed · admission recorded</p>
+        <h1>A Most Inconvenient<br /><em>Betrothal</em></h1>
+        <div className="ornament" aria-hidden="true"><span>◆</span></div>
+        <p className="lead">Lady {config.heroineName} has personally entered her name into a restricted marriage record. The court therefore recognises her as the sole heroine of this investigation.</p>
+        <div className="admission-record">
+          <span className="record-label">Statement entered into evidence</span>
+          <p>By identifying herself, Lady {config.heroineName} admits that she is curious, knowingly opened the decree and cannot later claim that she “clicked something by accident.”</p>
+          <strong>Her involvement is now legally inconvenient.</strong>
+        </div>
+        <p className="fine-print">This admission does not constitute consent to an actual marriage. It does, however, make escaping the plot considerably more difficult.</p>
+        <button className="primary-button" onClick={onBegin}>Accept the consequences</button>
+      </section>
+    </main>
+  );
+}
+
+function Chapter({ chapterIndex, solved, onSolve, onNext, config }) {
+  const chapter = config.chapters[chapterIndex];
   const isSolved = solved.includes(chapterIndex);
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
@@ -102,7 +159,7 @@ function Chapter({ chapterIndex, solved, onSolve, onNext }) {
 
   return (
     <main className="story-shell chapter-layout">
-      <ProgressRail solved={solved} />
+      <ProgressRail solved={solved} config={config} />
       <section className="scroll-panel chapter-panel">
         <div className="chapter-heading">
           <span className="chapter-number">Chapter {chapter.number}</span>
@@ -139,7 +196,7 @@ function Chapter({ chapterIndex, solved, onSolve, onNext }) {
             <h2>{chapter.answerLabel}</h2>
             <p>{chapter.finding}</p>
             <div className="award-line"><span>Seal recovered</span><strong>{chapter.seal}</strong></div>
-            <button className="primary-button" onClick={onNext}>{chapterIndex === storyConfig.chapters.length - 1 ? "Assemble the complete record" : "Open the next chapter"}</button>
+            <button className="primary-button" onClick={onNext}>{chapterIndex === config.chapters.length - 1 ? "Assemble the complete record" : "Open the next chapter"}</button>
           </div>
         )}
       </section>
@@ -147,12 +204,12 @@ function Chapter({ chapterIndex, solved, onSolve, onNext }) {
   );
 }
 
-function FinalPuzzle({ onSolved }) {
+function FinalPuzzle({ onSolved, config }) {
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
   const submit = (event) => {
     event.preventDefault();
-    if (normalizeAnswer(answer) === normalizeAnswer(storyConfig.finalAnswer)) {
+    if (normalizeAnswer(answer) === normalizeAnswer(config.finalAnswer)) {
       setError("");
       onSolved();
     } else {
@@ -165,7 +222,7 @@ function FinalPuzzle({ onSolved }) {
         <p className="eyebrow">The complete imperial record</p>
         <h1>Four answers.<br /><em>One hidden truth.</em></h1>
         <div className="final-seals" aria-label="Four recovered symbols">
-          {storyConfig.chapters.map((chapter) => <div key={chapter.seal} className="large-seal small">{chapter.sealMark}</div>)}
+          {config.chapters.map((chapter) => <div key={chapter.seal} className="large-seal small">{chapter.sealMark}</div>)}
         </div>
         <div className="final-riddle">
           <p>Name the man behind the arrangement.</p>
@@ -202,12 +259,12 @@ function Rating({ value, onRate }) {
   );
 }
 
-function Ending({ step, onStep, rating, onRate }) {
+function Ending({ step, onStep, rating, onRate, config }) {
   const content = useMemo(() => {
     const screens = {
       offer: {
         kicker: "True identity revealed",
-        title: storyConfig.nobleTitle,
+        title: config.nobleTitle,
         body: <><p>The clerk did not discover the truth beside you. He wrote it, divided it into chapters and waited for you to find your way through it.</p><div className="confession"><p>“You believed I was helping you investigate the arrangement.”</p><p>“In truth, I arranged every clue.”</p><p>“But I could never arrange your answer. That choice has always belonged to you.”</p></div><p className="moon-line">I love you to the moon and back.</p><div className="proposal-box"><span>The actual proposal</span><h3>Will you join me for a movie night at the Moon Pavilion?</h3><p>Includes snacks, blankets, cuddles and the right to demand another episode.</p></div></>,
         actions: [["Accept the arrangement", "acceptedOnce", "primary-button"], ["Expose the mastermind", "exposed", "secondary-button"]],
       },
@@ -236,7 +293,7 @@ function Ending({ step, onStep, rating, onRate }) {
       exposed: { kicker: "Interrogation approved", title: "The mastermind will answer for his crimes.", body: <><p>Interrogation venue: The Moon Pavilion.</p><p>Approved supplies: Snacks and blankets.</p><p>Estimated duration: One movie or several episodes.</p></>, actions: [["Begin the interrogation", "complete", "primary-button"]] },
     };
     return screens[step] || screens.offer;
-  }, [step]);
+  }, [step, config]);
 
   if (step === "complete") {
     return <main className="story-shell completion-shell"><section className="scroll-panel completion-panel"><div className="moon-disc" aria-hidden="true">月</div><p className="eyebrow">The Moon Pavilion</p><h1>Your sentence<br /><em>begins tonight.</em></h1><p className="lead">The kingdom is safe. The conspiracy succeeded. The snacks await.</p><Rating value={rating} onRate={onRate} /></section></main>;
@@ -252,25 +309,125 @@ function Ending({ step, onStep, rating, onRate }) {
   );
 }
 
+function AdminPanel({ config, onSave, onReset }) {
+  const [unlocked, setUnlocked] = useState(false);
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
+  const [draft, setDraft] = useState(() => JSON.parse(JSON.stringify(config)));
+
+  const unlock = (event) => {
+    event.preventDefault();
+    if (code !== defaultStoryConfig.adminCode) {
+      setError("Access denied. Even the mastermind must remember his own code.");
+      return;
+    }
+    setError("");
+    setUnlocked(true);
+  };
+
+  const updateChapter = (index, changes) => {
+    setDraft((current) => ({
+      ...current,
+      chapters: current.chapters.map((chapter, chapterIndex) => chapterIndex === index ? { ...chapter, ...changes } : chapter),
+    }));
+    setSaved(false);
+  };
+
+  const save = (event) => {
+    event.preventDefault();
+    onSave(draft);
+    setSaved(true);
+  };
+
+  if (!unlocked) {
+    return (
+      <main className="story-shell admin-shell">
+        <section className="scroll-panel admin-login">
+          <p className="eyebrow">Restricted mastermind access</p>
+          <h1>Imperial<br /><em>control room.</em></h1>
+          <p className="lead">This entrance is for the person accused of arranging everything.</p>
+          <form className="answer-form" onSubmit={unlock}>
+            <label htmlFor="admin-code">Mastermind code</label>
+            <div className="answer-row">
+              <input id="admin-code" type="password" value={code} onChange={(event) => setCode(event.target.value)} placeholder="Enter code" autoFocus />
+              <button className="seal-button" type="submit">Enter</button>
+            </div>
+            {error && <p className="error-message centered rejection" role="alert">{error}</p>}
+          </form>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main className="admin-page">
+      <section className="admin-header">
+        <div><p className="eyebrow">Mastermind controls</p><h1>Secret-word ledger</h1></div>
+        <a className="secondary-button admin-link" href="/">Return to story</a>
+      </section>
+      <form className="admin-form" onSubmit={save}>
+        <section className="admin-card admin-basics">
+          <label>Heroine’s accepted name<input value={draft.heroineName} onChange={(event) => setDraft({ ...draft, heroineName: event.target.value })} /></label>
+          <label>Final hidden sentence<input value={draft.finalAnswer} onChange={(event) => setDraft({ ...draft, finalAnswer: event.target.value })} /></label>
+        </section>
+        {draft.chapters.map((chapter, index) => (
+          <section className="admin-card" key={chapter.kicker}>
+            <div className="admin-card-heading"><span>Chapter {chapter.number}</span><h2>{chapter.question}</h2></div>
+            <label>
+              Secret words
+              <input value={chapter.acceptedAnswers.join(", ")} onChange={(event) => updateChapter(index, { acceptedAnswers: event.target.value.split(",").map((answer) => answer.trim()).filter(Boolean) })} />
+              <small>Separate alternatives with commas. Capital letters and punctuation are ignored.</small>
+            </label>
+            <label>Answer revealed after solving<input value={chapter.answerLabel} onChange={(event) => updateChapter(index, { answerLabel: event.target.value })} /></label>
+          </section>
+        ))}
+        <div className="admin-actions">
+          <button className="primary-button" type="submit">Save secret words</button>
+          <button className="secondary-button" type="button" onClick={() => { onReset(); setDraft(JSON.parse(JSON.stringify(defaultStoryConfig))); setSaved(false); }}>Restore original settings</button>
+          {saved && <p role="status">Saved on this device. The palace records have been altered.</p>}
+        </div>
+      </form>
+    </main>
+  );
+}
+
 export default function App() {
   const [progress, setProgress] = useState(loadProgress);
+  const [config, setConfig] = useState(loadStoryConfig);
+  const isAdmin = new URLSearchParams(window.location.search).get("admin") === "1";
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); }, [progress]);
   const update = (next) => setProgress((current) => ({ ...current, ...next }));
   const solveChapter = (index) => setProgress((current) => ({ ...current, solved: current.solved.includes(index) ? current.solved : [...current.solved, index] }));
   const nextChapter = () => {
-    if (progress.chapter >= storyConfig.chapters.length - 1) update({ screen: "final" });
+    if (progress.chapter >= config.chapters.length - 1) update({ screen: "final" });
     else { update({ chapter: progress.chapter + 1 }); window.scrollTo({ top: 0, behavior: "smooth" }); }
   };
   const reset = () => { if (window.confirm("Erase the investigation and reseal every chapter?")) setProgress(initialProgress); };
 
+  const saveConfig = (nextConfig) => {
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(nextConfig));
+    setConfig(nextConfig);
+  };
+
+  const resetConfig = () => {
+    localStorage.removeItem(CONFIG_KEY);
+    setConfig(defaultStoryConfig);
+  };
+
+  if (isAdmin) {
+    return <div className="app-frame"><div className="paper-noise" aria-hidden="true" /><AdminPanel config={config} onSave={saveConfig} onReset={resetConfig} /></div>;
+  }
+
   return (
     <div className="app-frame">
       <div className="paper-noise" aria-hidden="true" />
-      <header className="topbar"><span className="brand-mark">缘</span><span className="brand-name">Royal Tulip</span>{progress.screen !== "prologue" && <button className="reset-button" onClick={reset}>Reseal story</button>}</header>
-      {progress.screen === "prologue" && <Prologue onBegin={() => update({ screen: "chapter", chapter: 0 })} />}
-      {progress.screen === "chapter" && <Chapter chapterIndex={progress.chapter} solved={progress.solved} onSolve={solveChapter} onNext={nextChapter} />}
-      {progress.screen === "final" && <FinalPuzzle onSolved={() => update({ screen: "ending", endingStep: "offer" })} />}
-      {progress.screen === "ending" && <Ending step={progress.endingStep} onStep={(endingStep) => update({ endingStep })} rating={progress.rating} onRate={(rating) => update({ rating })} />}
+      <header className="topbar"><span className="brand-mark">缘</span><span className="brand-name">Royal Tulip</span>{progress.screen !== "identity" && <button className="reset-button" onClick={reset}>Reseal story</button>}</header>
+      {progress.screen === "identity" && <IdentityGate config={config} onAdmit={() => update({ screen: "prologue" })} />}
+      {progress.screen === "prologue" && <Prologue config={config} onBegin={() => update({ screen: "chapter", chapter: 0 })} />}
+      {progress.screen === "chapter" && <Chapter config={config} chapterIndex={progress.chapter} solved={progress.solved} onSolve={solveChapter} onNext={nextChapter} />}
+      {progress.screen === "final" && <FinalPuzzle config={config} onSolved={() => update({ screen: "ending", endingStep: "offer" })} />}
+      {progress.screen === "ending" && <Ending config={config} step={progress.endingStep} onStep={(endingStep) => update({ endingStep })} rating={progress.rating} onRate={(rating) => update({ rating })} />}
       <footer><span>Private record of the Moon Pavilion</span><span>✦</span></footer>
     </div>
   );

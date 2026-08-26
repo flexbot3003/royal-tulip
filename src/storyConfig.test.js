@@ -23,6 +23,11 @@ describe("Royal Tulip story configuration", () => {
     expect(storyConfig.finalAnswer).toBe("I love you to the moon and back");
   });
 
+  it("admits only Thabi through the opening record by default", () => {
+    expect(storyConfig.heroineName).toBe("Thabi");
+    expect(storyConfig.adminCode).toBeTruthy();
+  });
+
   it("has a quirky response for every boyfriend rating", () => {
     expect(Object.keys(ratingMessages)).toHaveLength(10);
     for (let rating = 1; rating <= 10; rating += 1) {

@@ -2,9 +2,10 @@
 // Answers are case-insensitive. Add alternate spellings to acceptedAnswers.
 
 export const storyConfig = {
-  heroineName: "My Lady",
+  heroineName: "Thabi",
   clerkName: "The Unimportant Clerk",
   nobleTitle: "Lord of the Moon Pavilion",
+  adminCode: "moonback",
   finalAnswer: "I love you to the moon and back",
   chapters: [
     {
