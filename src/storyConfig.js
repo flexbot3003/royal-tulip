@@ -1,0 +1,112 @@
+// Personalise the experience here before the real date.
+// Answers are case-insensitive. Add alternate spellings to acceptedAnswers.
+
+export const storyConfig = {
+  heroineName: "My Lady",
+  clerkName: "The Unimportant Clerk",
+  nobleTitle: "Lord of the Moon Pavilion",
+  finalAnswer: "I love you to the moon and back",
+  chapters: [
+    {
+      number: "I",
+      kicker: "The Hand Behind the Decree",
+      question: "Who arranged the marriage?",
+      wisdom: [
+        "The Emperor signs what is placed before him.",
+        "A minister obeys what benefits the court.",
+        "But only one patient strategist would hide private memories inside official evidence.",
+      ],
+      prompt: "Name the hand that moved unseen.",
+      acceptedAnswers: ["moon strategist", "the moon strategist", "strategist"],
+      answerLabel: "The Moon Strategist",
+      finding: "The decree was not born in the Imperial Court. It was designed by the Moon Strategist—someone close enough to know which details would lead only to her.",
+      relationshipNote: "Use a private joke, her usual order and one detail she once mentioned as the real-world evidence.",
+      hints: [
+        "The arranger is not the loudest person in court.",
+        "Consider who benefits from every clue bringing you closer to the clerk.",
+        "His title is hidden where the night keeps its brightest secret.",
+      ],
+      seal: "The Speaker",
+      sealMark: "言",
+    },
+    {
+      number: "II",
+      kicker: "The Woman Within the Record",
+      question: "Why was she selected?",
+      wisdom: [
+        "Beauty may attract a court. Rank may satisfy an Emperor.",
+        "Neither explains why the evidence remembers her smallest kindnesses.",
+        "The answer belongs to the person who noticed the woman inside the title.",
+      ],
+      prompt: "What did the strategist make her feel?",
+      acceptedAnswers: ["known", "seen", "noticed"],
+      answerLabel: "Known",
+      finding: "She was not selected because a decree required a bride. She was selected because the strategist knew how she cared, laughed, spoke and made ordinary days worth remembering.",
+      relationshipNote: "Build this chapter from her own words: a moment she felt seen, a habit only you notice and an ordinary memory she treasures.",
+      hints: [
+        "The answer is not beautiful. Beauty can be observed from a distance.",
+        "What do we call the feeling of being remembered in the smallest details?",
+        "Not merely seen. Understood well enough to be recognised without a title.",
+      ],
+      seal: "The Heart",
+      sealMark: "心",
+    },
+    {
+      number: "III",
+      kicker: "The Nobleman Without a Face",
+      question: "Who is the mysterious nobleman?",
+      wisdom: [
+        "The nobleman vanishes whenever the clerk appears.",
+        "Their words carry the same humour. Their memories open the same doors.",
+        "Two shadows cannot be cast by one body—unless the court was shown a disguise.",
+      ],
+      prompt: "Name the man hiding in plain sight.",
+      acceptedAnswers: ["the clerk", "clerk", "unimportant clerk"],
+      answerLabel: "The Clerk",
+      finding: "The insignificant clerk and the mysterious nobleman are the same man. Lord of the Moon Pavilion has travelled beside her under a deliberately unimpressive title.",
+      relationshipNote: "Let shared expressions, your handwriting, a familiar nickname or a memory only you two share expose the disguise.",
+      hints: [
+        "Do not search for a new suspect. Re-examine the one already beside you.",
+        "Who is always present when a clue becomes useful?",
+        "The court record calls him unimportant. The evidence strongly disagrees.",
+      ],
+      seal: "The Moon",
+      sealMark: "月",
+    },
+    {
+      number: "IV",
+      kicker: "The Clerk Who Knew Too Much",
+      question: "Why did the clerk always know more than he should?",
+      wisdom: [
+        "He did not predict which memories would matter.",
+        "He did not discover the answers beside her.",
+        "He divided one truth into chapters, then waited for her to find it.",
+      ],
+      prompt: "What was his role in the hidden manual?",
+      acceptedAnswers: ["author", "the author", "writer", "the writer"],
+      answerLabel: "The Author",
+      finding: "He knew every answer because he wrote every question. The manual, the clues and the suspiciously convenient investigation were built from a relationship he had already lived with her.",
+      relationshipNote: "The app itself is the evidence here: your wording, timing, humour and knowledge of the previous answers.",
+      hints: [
+        "A reader discovers a story. This man already knew its ending.",
+        "Why would every line sound suspiciously like him?",
+        "He did not simply read the manual. He made it.",
+      ],
+      seal: "The Returning Path",
+      sealMark: "归",
+    },
+  ],
+};
+
+export const ratingMessages = {
+  1: "One star? The Imperial Court has opened a criminal investigation.",
+  2: "Two stars. One for effort, one apparently awarded out of pity.",
+  3: "A minor official with room for several seasons of character development.",
+  4: "Below average, yet mysteriously retained by the palace.",
+  5: "Perfectly ordinary. The clerk's preferred cover remains intact.",
+  6: "Acceptable boyfriend material. Promotion paperwork has begun.",
+  7: "A respectable nobleman, despite the forged decree situation.",
+  8: "Eight stars. The Chief Eunuch suspects favourable bias.",
+  9: "One star withheld to keep His Lordship humble. Sensible.",
+  10: "Ten stars? This review was clearly coerced. It has been accepted anyway.",
+};
